@@ -1,0 +1,431 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+    <div id="app">
+        <h1>Index</h1>
+
+
+
+        <label>Vehicle Id</label>
+        <input type="number" class="form-control" v-model="vehicleId" id="exampleInputEmail1" aria-describedby="emailHelp">
+        <button class="btn btn-primary mt-2" v-on:click="getLocationHistory">Get History</button>
+
+        <br />
+
+
+        @* {{locationHistories}}*@
+
+
+        <br />
+        <button class="btn btn-primary m-2"  v-on:click="playLocationHistoryonMap(2)">play 0.5x</button>
+
+        <button  class="btn btn-primary m-2"  v-on:click="playLocationHistoryonMap(5)">play 1x</button>
+        <button class="btn btn-primary m-2"  v-on:click="playLocationHistoryonMap(4)" >play 1.5x</button>
+        <button  class="btn btn-primary m-2"  v-on:click="playLocationHistoryonMap(2)" >play 1.75x</button>
+        <button  class="btn btn-primary m-2"  v-on:click="playLocationHistoryonMap(1)" >play 2x</button>
+
+        <br />
+
+
+
+
+        <div class="container  mx-4 text-center">
+            <div id="mapid" ref="map"></div>
+
+        </div>
+
+        <button class="btn btn-primary " v-on:click="drawGraph">Show Graph </button>
+
+        <div id="chartContainer" style="        height: 300px;
+        width: 100%;
+        overflow-x: scroll;
+">
+
+
+
+        </div>
+
+
+
+
+        @section Scripts{
+
+                <script>
+
+                    const { createApp, ref, watch, onMounted } = Vue;
+
+
+
+
+                    const App = {
+                        setup() {
+
+
+                            console.log("It is Here ");
+
+                            const map = ref(null);
+
+
+                            const vehicleId = ref(null);
+
+
+                            const locationHistories = ref([]);
+
+
+
+                            var locationDto = ref([]);
+
+
+
+
+
+
+
+
+                            var mymap;
+
+
+
+
+                            onMounted(() => {
+                                console.log(map);
+                                console.log("Making The map");
+                                mymap = L.map(map.value).setView([23.3315, 75.0367], 5);
+                                const tileUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+                                const attribution =
+                                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+                                const tileLayer = L.tileLayer(tileUrl, { attribution });
+                                tileLayer.addTo(mymap);
+                            });
+
+
+
+
+
+                            function delay(n) {
+                                return new Promise(function (resolve) {
+                                    setTimeout(resolve, n * 1000);
+                                });
+                            }
+
+                            var prevMarker = null;
+
+                            const playLocationHistoryonMap = async (speed) => {
+
+
+
+
+
+
+
+
+                                for (let i = 0; i < locationHistories.value.length;i++) {
+
+
+                                    let item = locationHistories.value[i];
+
+                                    console.log("item")
+                                    console.log(item);
+
+                                    await delay(speed);
+
+
+
+
+
+
+
+                                    if (prevMarker != null) {
+
+                                        console.log("remove layer")
+                                        mymap.removeLayer(prevMarker);
+                                    }
+
+                                    console.log("item")
+                                    console.log(item);
+
+                                    //                              setTimeout(function () {
+
+                                    var marker = new L.Marker([item.latitude, item.longitude]);
+
+                                    marker.bindPopup("<b>Vehicle Name " +  " <b><p>Location on :" + new Date(item.locationOn).toLocaleTimeString() + "</p><p>Speed:" + item.speed + "</p>");
+
+                                    marker.addTo(mymap)
+
+
+                                    marker.openPopup();
+
+                                    var latLngs = [marker.getLatLng()];
+
+
+                                    var markerBounds = L.latLngBounds(latLngs);
+                                    mymap.fitBounds(markerBounds)
+                                    //mymap.fitBounds(marker);
+
+                                    
+
+                                    prevMarker = marker;
+
+
+                                }
+
+
+
+
+
+                                //locationHistories.value.forEach(item => {
+
+                                //    await delay(5);
+
+
+                                //    if (prevMarker != null) {
+
+                                //        console.log("remove layer")
+                                //        mymap.removeLayer(prevMarker);
+                                //    }
+
+                                //    console.log(item);
+
+                                //    //                              setTimeout(function () {
+
+                                //    var marker = new L.Marker([item.latitude, item.longitude]);
+
+                                //    marker.bindPopup("<b>Vehicle Name " + item.id + " <b><p>Location on :" + new Date(item.locationOn).toLocaleTimeString() + "</p><p>Speed:" + item.speed + "</p>");
+
+                                //    marker.addTo(mymap)
+
+
+                                //    marker.openPopup();
+
+
+                                //    prevMarker = marker;
+
+                                //    //}, 5000);
+
+
+
+                                //})
+
+
+                            }
+
+
+
+                            const getLocationHistory = async () => {
+
+                                console.log("Location History Is Here ")
+
+
+                                if (vehicleId.value != null) {
+
+
+                                    console.log(vehicleId.value);
+
+                                    await axios.get('/api/VehicleHistory/GetLocationHistory?id=' + vehicleId.value)
+                                        .then(function (response) {
+                                            // handle success
+                                            console.log(response);
+                                            locationHistories.value = response.data;
+                                            locationHistories.value.forEach(element => {
+
+
+
+                                                var date = new Date(element.locationOn);
+
+
+                                                let obj = {
+                                                    //dateTime: element.locationOn,
+                                                    //new Date(item.locationOn)
+                                                    
+    //                                            dateTime: new Date(date.toString()),
+
+                                                    dateTime: date.toLocaleTimeString(),
+                                                    speed: element.speed,
+                                                    latitude: element.latitude,
+                                                    longitude: element.longitude
+
+                                                }
+
+
+                                                console.log(obj);
+
+
+                                                locationDto.value.push(obj)
+
+                                                drawRoute();
+
+
+
+
+
+
+                                            });
+
+
+
+
+                                        })
+                                        .catch(function (error) {
+                                            // handle error
+                                            console.log(error);
+                                        })
+                                        .then(function () {
+                                            // always executed
+                                        });
+
+
+
+
+                                }
+
+
+
+
+                            }
+
+
+
+
+
+                            const drawRoute = () => {
+
+
+                                var latlngs = locationHistories.value.map((item) => {
+
+                                    return [item.latitude, item.longitude]
+
+                                });
+
+
+
+                                console.log("lat long");
+                                console.log(latlngs);
+                                console.log("lat long")
+
+
+
+                                var polyline = L.polyline(latlngs, { color: 'red' }).addTo(mymap);
+
+                                // zoom the map to the polyline
+                                mymap.fitBounds(polyline.getBounds());
+
+                            }
+
+
+
+
+
+
+
+
+
+
+                            const drawGraph = () => {
+
+                                var cordinates = [];
+
+                                cordinates = locationHistories.value.map((item) => {
+                                    console.log(item);
+                                    return {
+                                        x: new Date(item.locationOn), y: item.speed, lat: item.latitude, lon: item.longitude, speed: item.speed
+                                    }
+
+                                });
+
+
+                                console.log(cordinates);
+
+
+                                console.log(locationDto);
+
+
+                                var chart = new CanvasJS.Chart("chartContainer",
+                                    {
+                                        animationEnabled: true,
+                                        theme: "light2",
+                                        zoomEnabled: true,
+                                        title: {
+                                            text: "Simple Date-Time Chart"
+                                        },
+                                        axisX: {
+                                            title: "timeline",
+                                            gridThickness: 2
+                                        },
+                                        axisY: {
+                                            title: "Downloads"
+                                        },
+                                        data: [
+                                            {
+                                                type: "line",
+                                                click: onClick,
+                                                dataPoints: cordinates
+                                            }
+                                        ]
+                                    });
+
+
+
+                                let previousMarker = null;
+                                function onClick(e) {
+                                    // alert(e);
+                                    console.log(e);
+
+                                    if (previousMarker != null) {
+                                        mymap.removeLayer(previousMarker);
+                                    }
+
+                                    let newMarker = L.marker([e.dataPoint.lat, e.dataPoint.lon]);
+
+
+                                    newMarker.bindPopup("<b>Vehicle  name</b>  <br>  <p>Date And Time:" + e.dataPoint.x + "</p>  <p>Speed: " + e.dataPoint.speed + "Km/h" + "</p>        ").openPopup();
+
+                                    newMarker.addTo(mymap);
+                                    newMarker.openPopup();
+
+
+                                    previousMarker = newMarker;
+
+
+                                }
+                                chart.render();
+
+
+
+                            }
+
+
+
+
+
+
+
+
+
+
+                            return {
+                                getLocationHistory,
+                                vehicleId,
+                                locationHistories,
+                                map,
+                                drawGraph,
+                                playLocationHistoryonMap
+                            }
+
+                        }
+                    }
+
+
+                    createApp(App).mount("#app");
+                </script>
+
+        }
+
+
+
+
+

@@ -1,0 +1,88 @@
+﻿@model MapMvp1.ViewModels.VehicleViewModel
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+
+
+<div class="mb-4">
+
+
+
+    <div class="d-flex justify-content-center">
+
+
+        <form asp-action="Add" method="post">
+            <input type="hidden" asp-for="Vehicle.Id" />
+            <label class="form-label">Vehicle Name</label>
+
+            <input class="form-control mt-1" asp-for="Vehicle.Name" />
+
+        
+            <label class="form-label  mt-1">Vehicle Number Plate</label>
+
+            <input class="form-control" asp-for="Vehicle.NumberPlate" />
+
+            <label class="form-label mt-1">Vehicle Code</label>
+
+            <input class="form-control" asp-for="Vehicle.Code" />
+
+            <button   class="btn btn-primary mt-2   "   type="submit">Add</button>
+        </form>
+
+
+
+
+    </div>
+
+
+    
+</div>
+
+
+<div>
+
+
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Id</th>
+                <th scope="col">Name</th>
+                <th scope="col">Code</th>
+                <th scope="col">Number&nbsp;Plate</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var vehicle in Model.Vehicles)
+            {
+                <tr>
+                    <th scope="row">@vehicle.Id</th>
+                    <td>@vehicle.Name</td>
+                    <td>@vehicle.Code</td>
+                    <td>@vehicle.NumberPlate</td>
+
+                </tr>
+            }
+
+        </tbody>
+
+    </table>
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
